@@ -39,8 +39,8 @@
 
 
 #include <Wire.h>
-#include <AS3935.h>
-#include <LiquidCrystal.h>
+#include <AS3935.h> // https://github.com/dcoredump/AS3935_MOD-1016.git
+#include <LiquidCrystal.h> // https://github.com/arduino-libraries/LiquidCrystal.git
 
 #define IRQ_PIN 2
 
