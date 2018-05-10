@@ -41,11 +41,16 @@
 #include <Wire.h>
 #include <AS3935.h> // https://github.com/dcoredump/AS3935_MOD-1016.git
 #include <LiquidCrystal.h> // https://github.com/arduino-libraries/LiquidCrystal.git
+#include <looper.h>
 
 #define IRQ_PIN 2
 
+#define CLEAR_TIMER 2000
+
 volatile bool detected = false;
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+looper sched;
+uint16_t clear_counter = millis()+CLEAR_TIMER;
 
 void setup() {
   while (!Serial);
@@ -72,7 +77,7 @@ void setup() {
 
   //mod1016.setTuneCaps(7);
   mod1016.setIndoors();
-  mod1016.setNoiseFloor(5);
+  mod1016.setNoiseFloor(6);
 
 
   Serial.println("TUNE\tIN/OUT\tNOISEFLOOR");
@@ -89,6 +94,8 @@ void setup() {
   Serial.println("after interrupt");
 
   lcd.clear();
+
+  sched.addJob(clear_screen, 1000);
 }
 
 void loop() {
@@ -96,6 +103,7 @@ void loop() {
     translateIRQ(mod1016.getIRQ());
     detected = false;
   }
+  sched.scheduler();
 }
 
 void alert() {
@@ -121,11 +129,12 @@ void translateIRQ(uns8 irq)
       printDistance();
       break;
   }
+  clear_counter=millis();
 }
 
 void printDistance()
 {
-  lcd.setCursor(0, 0);
+  lcd.setCursor(1, 0);
   int distance = mod1016.calculateDistance();
   if (distance == -1)
   {
@@ -149,6 +158,15 @@ void printDistance()
     Serial.print("Lightning ~");
     Serial.print(distance);
     Serial.println("km away\n");
+  }
+}
+
+void clear_screen() {
+  if (clear_counter + CLEAR_TIMER < millis())
+  {
+    lcd.setCursor(0, 0);
+    lcd.print("                    ");
+    clear_counter=0;
   }
 }
 
